@@ -1,1 +1,3 @@
-
+random_seeds: 10
+learning_rate: 0.001
+training_epochs: 15001
