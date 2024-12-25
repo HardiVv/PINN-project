@@ -1,3 +1,10 @@
-random_seeds: 10
-learning_rate: 0.001
-training_epochs: 15001
+model_params:
+    N_INPUT: 2
+    N_OUTPUT: 1
+    N_HIDDEN: 32
+    N_LAYERS: 3
+
+training_params:
+    random_seeds: 10
+    learning_rate: 0.001
+    training_epochs: 15001
