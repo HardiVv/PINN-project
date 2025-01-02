@@ -3,19 +3,50 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from analytical_solution import exact_solution
+from noise_generator import generate_noisy_data
 
-def train_pinn(pinn, params):
+
+def train_pinn(pinn, params, inversion=False):
     """
-    Trains the PINN model.
+    Trains the PINN model
     Args:
     - pinn: The initialized FCN model.
     - params: A dictionary of parameters loaded from params.yaml.
     """
 
+    if inversion:
+        # Visualization and data generation
+        x, t, U_exact, U_noisy = generate_noisy_data()
+        # Convert noisy data to torch tensors
+        U_noisy_torch = U_noisy.clone().detach().reshape(-1, 1).type(torch.float32)
+
+        # Plotting exact and noisy solutions
+        fig2 = plt.figure(figsize=(10, 5))
+        plt.subplot(1, 2, 1)
+        plt.contourf(x, t, U_exact, levels=20, cmap='viridis')
+        plt.colorbar(label='Exact Solution')
+        plt.title('Exact Solution')
+        plt.xlabel('x')
+        plt.ylabel('t')
+
+        plt.subplot(1, 2, 2)
+        plt.contourf(x, t, U_noisy, levels=20, cmap='viridis')
+        plt.colorbar(label='Noisy Solution')
+        plt.title('Noisy Solution')
+        plt.xlabel('x')
+        plt.ylabel('t')
+        plt.tight_layout()
+        plt.savefig("plots/noisydata.png")
+        plt.close()
+
+        # Training variables
+        alpha_estimates = []
+        losses = []
+
     # Define the domain
     x_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Spatial domain
-    t_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Temporal domain
-    X, T = torch.meshgrid(x_physics[:, 0], t_physics[:, 0])
+    t_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Time domain
+    X, T = torch.meshgrid(x_physics[:, 0], t_physics[:, 0], indexing='ij')
     X_physics = torch.cat([X.reshape(-1, 1), T.reshape(-1, 1)], dim=1)  # (N, 2)
 
     # Define boundary points
@@ -35,6 +66,7 @@ def train_pinn(pinn, params):
     lambda_bc = 100.0  # Increased weight for boundary loss
     lambda_pde = 1.0  # Weight for PDE loss
     lambda_ic = 100.0  # Weight for initial condition loss
+    lambda_data = 10.0
     optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
 
     # Training
@@ -55,17 +87,30 @@ def train_pinn(pinn, params):
         u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 0:1]
         u_xx = torch.autograd.grad(u_x, X_physics, torch.ones_like(u_x), create_graph=True)[0][:, 0:1]
         u_t = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 1:2]
-        loss_pde = torch.mean((u_t - alpha_true * u_xx)**2)
+        
+        if inversion:
+            # Data loss comparing with noisy data
+            loss_data = torch.mean((u - U_noisy_torch)**2)
+            loss_pde = torch.mean((u_t - pinn.alpha * u_xx)**2)
+        else:
+            loss_pde = torch.mean((u_t - alpha_true * u_xx)**2)
 
         # Total loss
         loss = (lambda_bc * loss_bc +
                 lambda_pde * loss_pde +
-                lambda_ic * loss_ic)
+                lambda_ic * loss_ic +
+                (lambda_data * loss_data if inversion else 0.0))
+        
         loss.backward()
         optimizer.step()
 
         # Print progress and plot results
         if epoch % 500 == 0:
+            if inversion:
+                alpha_estimates.append(pinn.alpha.item())
+                losses.append(loss.item())
+                print(f"Estimated Alpha: {pinn.alpha.item():.4f}")
+
             print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
             print(f"Boundary Loss: {loss_bc.item():.4f}")
             print(f"Initial Condition Loss: {loss_ic.item():.4f}")
@@ -84,5 +129,21 @@ def train_pinn(pinn, params):
                 plt.legend()
                 plt.title(f"Epoch {epoch}")
                 plt.tight_layout()
-                plt.savefig(f"plots/heat_eq_epoch{epoch}.png")
+                if inversion:
+                    plt.savefig(f"plots/inversion/heat_eq_inversion_epoch{epoch}.png")
+                else:
+                    plt.savefig(f"plots/training/heat_eq_epoch{epoch}.png")
+                plt.close()
 
+    if inversion:
+        # Plot alpha estimates
+        plt.figure(figsize=(4,3))
+        plt.plot(np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label='Estimated Alpha')
+        plt.axhline(y=alpha_true, color='r', linestyle='--', label='True Alpha')
+        plt.title('Alpha Estimation')
+        plt.xlabel('Epoch')
+        plt.ylabel('Alpha')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig("plots/alpha_estimate.png")
+        plt.close()
