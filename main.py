@@ -23,7 +23,6 @@ def main():
     torch.manual_seed(seeds)
     np.random.seed(seeds)
 
-
     # Initialize PINN model
     pinn = FCN(**params['model_params'])
 
