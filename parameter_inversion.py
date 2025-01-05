@@ -11,10 +11,10 @@ def parameter_inversion(params):
     """
     # Load inversion-specific parameters
     inversion_params = params.get("inversion_params", {})
-    lambda_bc = inversion_params.get("lambda_bc", 100.0)  # Default value: 100
-    lambda_ic = inversion_params.get("lambda_ic", 100.0)  # Default value: 100
+    lambda_bc = inversion_params.get("lambda_bc", 10.0)  # Default value: 10
+    lambda_ic = inversion_params.get("lambda_ic", 10.0)  # Default value: 10
     lambda_pde = inversion_params.get("lambda_pde", 1.0)  # Default value: 1.0
-    inversion_epochs = inversion_params.get("inversion_epochs", 15001)
+    inversion_epochs = inversion_params.get("inversion_epochs", 10001)
     inv_learning_rate = inversion_params.get("inv_learning_rate", 1e-3)
 
     # Initialize PINN model
@@ -47,8 +47,9 @@ def parameter_inversion(params):
 
     # Optimizer for the model and parameter
     optimizer = torch.optim.Adam(
-        list(pinn.parameters()) + [alpha], lr=inv_learning_rate
-    )
+        list(pinn.parameters()) + [alpha], lr=inv_learning_rate,
+        weight_decay=1e-5
+    )  # added weight_decay term for L2
 
     # Training loop
     for epoch in range(inversion_epochs):

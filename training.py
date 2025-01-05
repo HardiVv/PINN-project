@@ -16,6 +16,12 @@ def train_pinn(pinn, params):
     # Ensure the plots directory exists
     os.makedirs("plots", exist_ok=True)
 
+    # Extract values from params.yaml
+    lambda_bc = params['inversion_params']['lambda_bc']  # Boundary loss weight
+    lambda_pde = params['inversion_params']['lambda_pde']  # PDE loss weight
+    lambda_ic = params['inversion_params']['lambda_ic']  # Initial condition
+    # lr = params['training_params']['learning_rate']  # left out for now
+
     # Define the domain
     x_physics = (
         torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)
@@ -47,7 +53,8 @@ def train_pinn(pinn, params):
     lambda_bc = 100.0  # Increased weight for boundary loss
     lambda_pde = 1.0  # Weight for PDE loss
     lambda_ic = 100.0  # Weight for initial condition loss
-    optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3,
+                                 weight_decay=1e-5)  # added L2 normalization
 
     # Training
     for epoch in range(5001):
