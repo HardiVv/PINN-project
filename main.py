@@ -4,6 +4,7 @@ import numpy as np
 
 from models import FCN
 from training import train_pinn
+from parameter_inversion import parameter_inversion
 
 
 def load_params():
@@ -30,9 +31,9 @@ def main():
     print("Training PINN...")
     train_pinn(pinn, params)
 
-    # TODO @ralferster
-    # Perform parameter inversion
     print("Performing parameter inversion...")
+    learned_alpha = parameter_inversion(params)
+    print(f"Learned thermal diffusivity (alpha): {learned_alpha}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import torch
-from analytical_solution import exact_solution
+#  from analytical_solution import exact_solution
 from models import FCN
 
 
