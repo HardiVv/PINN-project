@@ -1,2 +1,15 @@
 __pycache__/analytical_solution.cpython-312.pyc
 __pycache__/models.cpython-312.pyc
+plots/heat_eq_epoch5000.png
+plots/heat_eq_epoch4500.png
+plots/heat_eq_epoch4000.png
+plots/heat_eq_epoch3500.png
+plots/heat_eq_epoch3000.png
+plots/heat_eq_epoch2500.png
+plots/heat_eq_epoch2000.png
+plots/heat_eq_epoch1500.png
+plots/heat_eq_epoch1000.png
+plots/heat_eq_epoch500.png
+plots/heat_eq_epoch0.png
+__pycache__/parameter_inversion.cpython-312.pyc
+__pycache__/training.cpython-312.pyc

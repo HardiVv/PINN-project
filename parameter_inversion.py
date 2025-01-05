@@ -1,5 +1,4 @@
 import torch
-#  from analytical_solution import exact_solution
 from models import FCN
 
 
@@ -10,6 +9,14 @@ def parameter_inversion(params):
     Args:
     - params: Dictionary of parameters loaded from params.yaml.
     """
+    # Load inversion-specific parameters
+    inversion_params = params.get("inversion_params", {})
+    lambda_bc = inversion_params.get("lambda_bc", 100.0)  # Default value: 100
+    lambda_ic = inversion_params.get("lambda_ic", 100.0)  # Default value: 100
+    lambda_pde = inversion_params.get("lambda_pde", 1.0)  # Default value: 1.0
+    inversion_epochs = inversion_params.get("inversion_epochs", 15001)
+    inv_learning_rate = inversion_params.get("inv_learning_rate", 1e-3)
+
     # Initialize PINN model
     pinn = FCN(**params["model_params"])
 
@@ -39,10 +46,12 @@ def parameter_inversion(params):
     alpha = torch.tensor(0.3, requires_grad=True)  # initial guess
 
     # Optimizer for the model and parameter
-    optimizer = torch.optim.Adam(list(pinn.parameters()) + [alpha], lr=1e-3)
+    optimizer = torch.optim.Adam(
+        list(pinn.parameters()) + [alpha], lr=inv_learning_rate
+    )
 
     # Training loop
-    for epoch in range(15001):
+    for epoch in range(inversion_epochs):
         optimizer.zero_grad()  # zero gradient for backpropagation
 
         # Boundary loss, assures respect of boundaries
@@ -56,32 +65,31 @@ def parameter_inversion(params):
 
         # Physics loss, calculates residual of heat equation
         u = pinn(X_physics)
-        u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u),
-                                  create_graph=True)[0][:, 0:1]
+        u_x = torch.autograd.grad(
+            u, X_physics, torch.ones_like(u), create_graph=True
+        )[0][:, 0:1]
 
         u_xx = torch.autograd.grad(
             u_x, X_physics, torch.ones_like(u_x), create_graph=True
         )[0][:, 0:1]
 
-        u_t = torch.autograd.grad(u, X_physics, torch.ones_like(u),
-                                  create_graph=True)[0][:, 1:2]
+        u_t = torch.autograd.grad(
+            u, X_physics, torch.ones_like(u), create_graph=True
+        )[0][:, 1:2]
 
         loss_pde = torch.mean((u_t - alpha * u_xx) ** 2)
 
         # Total loss
-        loss = (
-            params["training_params"]["lambda_bc"] * loss_bc
-            + params["training_params"]["lambda_ic"] * loss_ic
-            + params["training_params"]["lambda_pde"] * loss_pde
-        )
+        loss = lambda_bc * loss_bc + lambda_ic * loss_ic
+        + lambda_pde * loss_pde
         loss.backward()
         optimizer.step()
 
         # Prints progress of learning
         if epoch % 500 == 0:
             print(
-                f"Epoch {epoch}\
-                  Loss: {loss.item():.4f}, Alpha: {alpha.item():.4f}"
+                f"Epoch {epoch} "
+                f"Loss: {loss.item():.4f}, Alpha: {alpha.item():.4f}"
             )
 
     # Return the learned parameter
