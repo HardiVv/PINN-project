@@ -6,6 +6,7 @@ from models import FCN
 from training import train_pinn
 
 
+
 def load_params():
     """
     Loads model and training params from params.yaml
@@ -25,16 +26,17 @@ def main():
 
 
     # Initialize PINN model
-    pinn = FCN(**params['model_params'])
+    pinn = FCN(**params['model_params'], inversion=False)
 
     # Train PINN
     print("Training PINN...")
-    train_pinn(pinn, params)
+    train_pinn(pinn, params, inversion=False)
 
-    # TODO @ralferster
     # Perform parameter inversion
-    print("Performing parameter inversion...")
+    pinn_inversion = FCN(**params['model_params'], inversion=True)
 
+    print("Performing parameter inversion...")
+    train_pinn(pinn_inversion, params, inversion=True)
 
 if __name__ == "__main__":
     main()
