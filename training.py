@@ -1,4 +1,5 @@
 import torch
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -12,6 +13,8 @@ def train_pinn(pinn, params):
     - pinn: The initialized FCN model.
     - params: A dictionary of parameters loaded from params.yaml.
     """
+    # Ensure the plots directory exists
+    os.makedirs("plots", exist_ok=True)
 
     # Define the domain
     x_physics = (
