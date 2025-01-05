@@ -18,8 +18,7 @@ def train_pinn(pinn, params, inversion=False):
         # Visualization and data generation
         x, t, U_exact, U_noisy = generate_noisy_data()
         # Convert noisy data to torch tensors
-        U_noisy_torch = U_noisy.clone().detach().\
-            reshape(-1, 1).type(torch.float32)
+        U_noisy_torch = U_noisy.clone().detach().reshape(-1, 1).type(torch.float32)
 
         # Plotting exact and noisy solutions
         fig2 = plt.figure(figsize=(10, 5))
@@ -45,24 +44,16 @@ def train_pinn(pinn, params, inversion=False):
         losses = []
 
     # Define the domain
-    x_physics = (
-        torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)
-    )  # Spatial domain
-    t_physics = torch.linspace(0, 1, 50).\
-        view(-1, 1).requires_grad_(True)  # Time domain
+    x_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Spatial domain
+    t_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Time domain
     X, T = torch.meshgrid(x_physics[:, 0], t_physics[:, 0], indexing="ij")
-    X_physics = torch.cat([X.reshape(-1, 1),
-                           T.reshape(-1, 1)], dim=1)  # (N, 2)
+    X_physics = torch.cat([X.reshape(-1, 1), T.reshape(-1, 1)], dim=1)  # (N, 2)
 
     # Define boundary points
     x_boundary = torch.tensor([[0.0], [1.0]])
     t_boundary = torch.linspace(0, 1, 50).view(-1, 1)
-    boundary_left = torch.cat(
-        [x_boundary[0].repeat(t_boundary.size(0), 1), t_boundary], dim=1
-    )
-    boundary_right = torch.cat(
-        [x_boundary[1].repeat(t_boundary.size(0), 1), t_boundary], dim=1
-    )
+    boundary_left = torch.cat([x_boundary[0].repeat(t_boundary.size(0), 1), t_boundary], dim=1)
+    boundary_right = torch.cat([x_boundary[1].repeat(t_boundary.size(0), 1), t_boundary], dim=1)
     boundary = torch.cat([boundary_left, boundary_right], dim=0)
 
     # Define initial condition points
@@ -94,15 +85,9 @@ def train_pinn(pinn, params, inversion=False):
         # Physics loss (PDE)
         u = pinn(X_physics)  # Predict u(x, t)
 
-        u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u),
-                                  create_graph=True)[0][:, 0:1]
-
-        u_xx = torch.autograd.grad(
-            u_x, X_physics, torch.ones_like(u_x), create_graph=True
-        )[0][:, 0:1]
-
-        u_t = torch.autograd.grad(u, X_physics, torch.ones_like(u),
-                                  create_graph=True)[0][:, 1:2]
+        u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 0:1]
+        u_xx = torch.autograd.grad(u_x, X_physics, torch.ones_like(u_x), create_graph=True)[0][:, 0:1]
+        u_t = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 1:2]
 
         if inversion:
             # Data loss comparing with noisy data
@@ -142,20 +127,13 @@ def train_pinn(pinn, params, inversion=False):
                 u_exact = exact_solution(x_test, t_test, alpha_true)
 
                 plt.figure(figsize=(4.5, 2.5))
-                plt.plot(
-                    x_test,
-                    u_exact,
-                    label="Exact Solution",
-                    color="gray",
-                    linestyle="dashed",
-                )
+                plt.plot(x_test, u_exact, label="Exact Solution", color="gray", linestyle="dashed")
                 plt.plot(x_test, u_pred, label="PINN Solution", color="blue")
                 plt.legend()
                 plt.title(f"Epoch {epoch}")
                 plt.tight_layout()
                 if inversion:
-                    plt.savefig(f"plots/inversion/heat_eq_inversion_epoch\
-                                {epoch}.png")
+                    plt.savefig(f"plots/inversion/heat_eq_inversion_epoch{epoch}.png")
                 else:
                     plt.savefig(f"plots/training/heat_eq_epoch{epoch}.png")
                 plt.close()
@@ -163,13 +141,8 @@ def train_pinn(pinn, params, inversion=False):
     if inversion:
         # Plot alpha estimates
         plt.figure(figsize=(4, 3))
-        plt.plot(
-            np.linspace(0, 5000, len(alpha_estimates)),
-            alpha_estimates,
-            label="Estimated Alpha",
-        )
-        plt.axhline(y=alpha_true, color="r", linestyle="--",
-                    label="True Alpha")
+        plt.plot( np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label="Estimated Alpha")
+        plt.axhline(y=alpha_true, color="r", linestyle="--", label="True Alpha")
         plt.title("Alpha Estimation")
         plt.xlabel("Epoch")
         plt.ylabel("Alpha")
