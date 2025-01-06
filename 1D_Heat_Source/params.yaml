@@ -7,7 +7,7 @@ model_params:
 training_params:
     random_seeds: 10
     learning_rate: 0.001
-    training_epochs: 15001
+    training_epochs: 5001
 
 model_2_params:
     N_INPUT: 2
