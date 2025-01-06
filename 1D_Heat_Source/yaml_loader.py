@@ -1,5 +1,5 @@
 import yaml
-from general import FCN  # Assuming your FCN class is in a file named fcn.py
+
 
 def load_config(file_path):
     """Load the YAML configuration file."""
