@@ -46,23 +46,6 @@ def main():
     print("Training the PINN model...")
     train_pinn(pinn, training_config, model_config, inversion=training_config.get("inversion", False))
 
-    # Perform any post-training visualization
-    print("Visualizing the analytical solution...")
-    x_vals = torch.linspace(0, 1, 50)
-    t_vals = torch.linspace(0, 1, 50)
-    X, T = torch.meshgrid(x_vals, t_vals, indexing="ij")
-    U_analytic = exact_solution_source(X, T, alpha=0.1).numpy()
-
-    # Plotting the analytical solution
-    plt.figure(figsize=(10, 5))
-    cp = plt.contourf(X.numpy(), T.numpy(), U_analytic, levels=20, cmap="viridis")
-    plt.colorbar(cp, label="Temperature")
-    plt.title("Analytical Solution of the 1D Heat Equation with Source")
-    plt.xlabel("x")
-    plt.ylabel("t")
-    plt.tight_layout()
-    plt.show()
-
     print("Main execution completed!")
 
 
