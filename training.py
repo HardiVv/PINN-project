@@ -2,6 +2,7 @@
 
 import torch
 import os
+import yaml
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -41,6 +42,9 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
     Returns:
     - None
     """
+
+    # Load the number of training epochs
+    training_epochs = params["training_params"]["training_epochs"]
 
     # Ensure the directory exists
     os.makedirs("plots/training", exist_ok=True)
@@ -108,7 +112,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
     optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
 
     # Training loop
-    for epoch in range(5001):
+    for epoch in range(training_epochs):
         optimizer.zero_grad()
 
         # Boundary loss (enforcing zero at boundaries)
