@@ -156,7 +156,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         optimizer.step()
 
         # Print progress and plot results
-        if epoch % 500 == 0:
+        if epoch % 1000 == 0:
             if inversion:
                 alpha_estimates.append(pinn.alpha.item())
                 losses.append(loss.item())
