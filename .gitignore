@@ -32,3 +32,4 @@ plots/training/heat_eq_epoch4500.png
 plots/training/heat_eq_epoch5000.png
 plots/alpha_estimate.png
 plots/noisydata.png
+__pycache__/analytical_solution_source.cpython-312.pyc
