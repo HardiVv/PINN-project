@@ -1,31 +1,39 @@
+# flake8: noqa: F401  # Ignore the unused import warning
+
 import torch
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from analytical_solutions import exact_solution
+from analytical_solutions import exact_solution, exact_solution_source
 from noise_generator import generate_noisy_data
 
 
-def train_pinn(pinn, params, inversion=False):
+def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
     """
-    Trains the PINN model
+    Trains the PINN model.
+
     Args:
     - pinn: The initialized FCN model.
     - params: A dictionary of parameters loaded from params.yaml.
+    - solution_func: The function to compute the exact solution (either exact_solution or exact_solution_source).
+    - inversion: A flag to switch between data inversion (with noisy data) or standard training.
+    - with_source: A flag to include the source term in the PDE or not.
+
+    Returns:
+    - None
     """
 
     # Ensure the directory exists
     os.makedirs("plots/training", exist_ok=True)
 
     if inversion:
-
         # Ensure the directory for saving plots exists
         inversion_plot_dir = "plots/inversion"
-        os.makedirs(inversion_plot_dir, exist_ok=True)  # Creates the folder
+        os.makedirs(inversion_plot_dir, exist_ok=True)
 
-        # Visualization and data generation with exact_function
-        x, t, U_exact, U_noisy = generate_noisy_data(exact_solution)
+        # Visualization and data generation with the selected solution function (either with or without source term)
+        x, t, U_exact, U_noisy = generate_noisy_data(solution_func)
 
         # Convert noisy data to torch tensors
         U_noisy_torch = U_noisy.clone().detach().reshape(-1, 1).type(torch.float32)
@@ -79,7 +87,7 @@ def train_pinn(pinn, params, inversion=False):
     lambda_data = 10.0
     optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
 
-    # Training
+    # Training loop
     for epoch in range(5001):
         optimizer.zero_grad()
 
@@ -92,7 +100,7 @@ def train_pinn(pinn, params, inversion=False):
         u_initial_true = torch.sin(np.pi * x_initial)
         loss_ic = torch.mean((u_initial - u_initial_true) ** 2)
 
-        # Physics loss (PDE)
+        # Physics loss (PDE) - Now conditionally including the source term
         u = pinn(X_physics)  # Predict u(x, t)
 
         u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 0:1]
@@ -102,9 +110,15 @@ def train_pinn(pinn, params, inversion=False):
         if inversion:
             # Data loss comparing with noisy data
             loss_data = torch.mean((u - U_noisy_torch) ** 2)
-            loss_pde = torch.mean((u_t - (getattr(pinn, 'alpha', 0.1) * u_xx)) ** 2)  # adds alpha to train
+            if with_source:  # source term is included
+                loss_pde = torch.mean((u_t - (getattr(pinn, "alpha", 0.1) * u_xx + 1)) ** 2)  # Source term is 1
+            else:
+                loss_pde = torch.mean((u_t - getattr(pinn, "alpha", 0.1) * u_xx) ** 2)  # No source term
         else:
-            loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)
+            if with_source:  # source term is included
+                loss_pde = torch.mean((u_t - alpha_true * u_xx - 1) ** 2)  # Source term is 1
+            else:
+                loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)  # No source term
 
         # Total loss
         loss = (
@@ -134,7 +148,9 @@ def train_pinn(pinn, params, inversion=False):
                 t_test = torch.tensor(0.1).repeat(100).view(-1, 1)
                 X_test = torch.cat([x_test, t_test], dim=1)
                 u_pred = pinn(X_test).detach()
-                u_exact = exact_solution(x_test, t_test, alpha_true)
+
+                # Use the chosen solution function (either exact_solution or exact_solution_source)
+                u_exact = solution_func(x_test, t_test, alpha_true)
 
                 plt.figure(figsize=(4.5, 2.5))
                 plt.plot(x_test, u_exact, label="Exact Solution", color="gray", linestyle="dashed")

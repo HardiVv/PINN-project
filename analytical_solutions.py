@@ -26,6 +26,7 @@ def exact_solution_source(x, t, alpha):
     With boundary conditions:
     - u(x, 0) = sin(pi x) / (alpha * pi^2 + 1)
     - u(0, t) = u(1, t) = 0
+    And a source term f(x, t) = 1.
 
     Args:
     - t: time
@@ -42,5 +43,8 @@ def exact_solution_source(x, t, alpha):
     if isinstance(t, np.ndarray):
         t = torch.tensor(t, dtype=torch.float32)
 
-    # Computed manually, but added here
-    return (torch.sin(np.pi * x) / (alpha * np.pi**2 + 1)) * (1 - torch.exp(-(alpha * np.pi**2 + 1) * t))
+    # The analytical solution with the source term included
+    term_1 = (torch.sin(np.pi * x) / (alpha * np.pi**2 + 1)) * (1 - torch.exp(-(alpha * np.pi**2 + 1) * t))
+    term_2 = 1 / (alpha * np.pi**2 + 1)
+
+    return term_1 + term_2
