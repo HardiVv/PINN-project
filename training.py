@@ -1,4 +1,5 @@
 import torch
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,9 +15,18 @@ def train_pinn(pinn, params, inversion=False):
     - params: A dictionary of parameters loaded from params.yaml.
     """
 
+    # Ensure the directory exists
+    os.makedirs("plots/training", exist_ok=True)
+
     if inversion:
-        # Visualization and data generation
-        x, t, U_exact, U_noisy = generate_noisy_data()
+
+        # Ensure the directory for saving plots exists
+        inversion_plot_dir = "plots/inversion"
+        os.makedirs(inversion_plot_dir, exist_ok=True)  # Creates it if it doesn't exist
+
+        # Visualization and data generation with exact_function
+        x, t, U_exact, U_noisy = generate_noisy_data(exact_solution)
+
         # Convert noisy data to torch tensors
         U_noisy_torch = U_noisy.clone().detach().reshape(-1, 1).type(torch.float32)
 
@@ -141,7 +151,7 @@ def train_pinn(pinn, params, inversion=False):
     if inversion:
         # Plot alpha estimates
         plt.figure(figsize=(4, 3))
-        plt.plot( np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label="Estimated Alpha")
+        plt.plot(np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label="Estimated Alpha")
         plt.axhline(y=alpha_true, color="r", linestyle="--", label="True Alpha")
         plt.title("Alpha Estimation")
         plt.xlabel("Epoch")
