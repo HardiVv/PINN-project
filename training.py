@@ -8,6 +8,24 @@ import matplotlib.pyplot as plt
 from analytical_solutions import exact_solution, exact_solution_source
 from noise_generator import generate_noisy_data
 
+def generate_filename(epoch, inversion, solution_func_name, with_source):
+    """
+    Helper function to save the PINN model training steps depending on sources, and type of equation.
+
+    Args:
+    - epoch: The number of epochs
+    - inversion: A flag to switch between data inversion (with noisy data) or standard training.
+    - solution_func_name: A flag stating which PDE is being trained.
+    - with_source: A flag to indicate if the source term has been included or not.
+
+    Returns: png 
+    """
+    # Generate a unique filename based on the equation and source term
+    equation_name = "source" if "source" in solution_func_name else "no_source"
+    source_status = "with_source" if with_source else "without_source"
+    inversion_status = "inversion" if inversion else "training"
+
+    return f"plots/{inversion_status}/{equation_name}_{source_status}_epoch{epoch}.png"
 
 def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
     """
@@ -54,7 +72,9 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         plt.xlabel("x")
         plt.ylabel("t")
         plt.tight_layout()
-        plt.savefig("plots/noisydata.png")
+
+        filename = generate_filename(0, inversion, solution_func.__name__, with_source)
+        plt.savefig(filename)
         plt.close()
 
         # Training variables
@@ -158,10 +178,8 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
                 plt.legend()
                 plt.title(f"Epoch {epoch}")
                 plt.tight_layout()
-                if inversion:
-                    plt.savefig(f"plots/inversion/heat_eq_inversion_epoch{epoch}.png")
-                else:
-                    plt.savefig(f"plots/training/heat_eq_epoch{epoch}.png")
+                filename = generate_filename(epoch, inversion, solution_func.__name__, with_source)
+                plt.savefig(filename)
                 plt.close()
 
     if inversion:
@@ -174,5 +192,6 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         plt.ylabel("Alpha")
         plt.legend()
         plt.tight_layout()
-        plt.savefig("plots/alpha_estimate.png")
+        filename = generate_filename(0, inversion, solution_func.__name__, with_source)
+        plt.savefig(filename)
         plt.close()
