@@ -30,3 +30,5 @@ plots/training/heat_eq_epoch3500.png
 plots/training/heat_eq_epoch4000.png
 plots/training/heat_eq_epoch4500.png
 plots/training/heat_eq_epoch5000.png
+plots/alpha_estimate.png
+plots/noisydata.png

@@ -13,9 +13,16 @@ class FCN(nn.Module):
     - N_LAYERS: Number of hidden layers
     """
 
-    def __init__(self, N_INPUT, N_OUTPUT, N_HIDDEN, N_LAYERS, inversion=False):
+    def __init__(self, config):
         super().__init__()
-        activation = nn.Tanh
+        N_INPUT = config.get("N_INPUT", 2)  # default 2 for gen. use
+        N_OUTPUT = config.get("N_OUTPUT", 1)  # default 1  for gen. use
+        N_HIDDEN = config.get("N_HIDDEN", 32)  # default 32  for gen. use
+        N_LAYERS = config.get("N_LAYERS", 3)  # default 3  for gen. use
+
+        self.inversion = config.get("inversion", False)  # default False
+        activation = nn.Tanh  # used due to good behaviour
+
         self.fcs = nn.Sequential(nn.Linear(N_INPUT, N_HIDDEN), activation())
         self.fch = nn.Sequential(
             *[
@@ -25,8 +32,8 @@ class FCN(nn.Module):
         )
         self.fce = nn.Linear(N_HIDDEN, N_OUTPUT)
 
-        if inversion:
-            # Learnable parameter for alpha
+        if self.inversion:
+            # Learnable parameter for alpha (diffusion coefficient)
             self.alpha = nn.Parameter(torch.tensor(0.05, dtype=torch.float32))
 
     def forward(self, x):

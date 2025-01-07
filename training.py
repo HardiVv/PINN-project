@@ -22,7 +22,7 @@ def train_pinn(pinn, params, inversion=False):
 
         # Ensure the directory for saving plots exists
         inversion_plot_dir = "plots/inversion"
-        os.makedirs(inversion_plot_dir, exist_ok=True)  # Creates it if it doesn't exist
+        os.makedirs(inversion_plot_dir, exist_ok=True)  # Creates the folder
 
         # Visualization and data generation with exact_function
         x, t, U_exact, U_noisy = generate_noisy_data(exact_solution)
@@ -102,7 +102,7 @@ def train_pinn(pinn, params, inversion=False):
         if inversion:
             # Data loss comparing with noisy data
             loss_data = torch.mean((u - U_noisy_torch) ** 2)
-            loss_pde = torch.mean((u_t - pinn.alpha * u_xx) ** 2)
+            loss_pde = torch.mean((u_t - (getattr(pinn, 'alpha', 0.1) * u_xx)) ** 2)  # adds alpha to train
         else:
             loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)
 

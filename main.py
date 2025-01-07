@@ -23,15 +23,19 @@ def main():
     torch.manual_seed(seeds)
     np.random.seed(seeds)
 
-    # Initialize PINN model
-    pinn = FCN(**params["model_params"], inversion=False)
+    # Add 'inversion' key to config
+    params["model_params"]["inversion"] = False  # Wouldn't work without this
+
+    # Initialize PINN model with the config dictionary as a single argument
+    pinn = FCN(config=params["model_params"])
 
     # Train PINN
     print("Training PINN...")
     train_pinn(pinn, params, inversion=False)
 
     # Perform parameter inversion
-    pinn_inversion = FCN(**params["model_params"], inversion=True)
+    params["model_params"]["inversion"] = True  # Otherwise wouldn't invert
+    pinn_inversion = FCN(config=params["model_params"])
 
     print("Performing parameter inversion...")
     train_pinn(pinn_inversion, params, inversion=True)
