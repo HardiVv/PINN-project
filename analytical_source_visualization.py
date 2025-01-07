@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
-from analytical_solution_source import exact_solution_source
+from analytical_solutions import exact_solution_source
 
 # Parameters
 alpha = 0.1

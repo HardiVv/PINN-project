@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from analytical_solution import exact_solution
+from analytical_solutions import exact_solution
 from noise_generator import generate_noisy_data
 
 
