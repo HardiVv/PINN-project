@@ -14,3 +14,4 @@ $$u(0,t)=u(1,t)=0$$
 
 Then the analytical solution is:
 $$u(x,t)=e^{−\pi^2 \alpha t} \sin⁡(\pi x)$$
+

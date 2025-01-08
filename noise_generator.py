@@ -2,10 +2,10 @@ import torch
 import numpy as np
 
 
-# Generate noisy experimental data
+# Generate experimental data with Gaussian noise 
 def generate_noisy_data(alpha_true=0.1, noise_level=0.05, equation=None):
 
-    # Create grid of points
+    # Grid points
     x = torch.linspace(0, 1, 50)
     t = torch.linspace(0, 1, 50)
     X, T = torch.meshgrid(x, t, indexing='ij')

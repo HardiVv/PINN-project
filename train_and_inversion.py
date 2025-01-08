@@ -4,12 +4,20 @@ import matplotlib.pyplot as plt
 from noise_generator import generate_noisy_data
 
 
-def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False):
+def train_inversion(pinn, params, exact_solution, inversion=False, with_source=False):
     """
-    Trains the PINN model
+    Trains the PINN model and performes inversion if True
+
     Args:
     - pinn: The initialized FCN model.
-    - params: A dictionary of parameters loaded from params.yaml.
+    - params: A dictionary of parameters loaded from params.yaml
+    - exact_solution: Analytical solution of 
+      1D heat equation or 1D heat equation with source term
+    - inversion (boolean): Determines if to perform inversion
+    - with_source (boolean): Checks if soulution has source
+
+    Returns:
+    - Plots 
     """
 
     if inversion:
@@ -72,7 +80,7 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
     lambda_pde = params['hyperparameters']['lambda_pde']
     lambda_ic = params['hyperparameters']['lambda_ic']
     lambda_data = params['hyperparameters']['lambda_data']
-    optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
+    optimizer = torch.optim.AdamW(pinn.parameters(), lr=1e-3) # Adam or AdamW
 
     # Training
     for epoch in range(5001):
@@ -97,12 +105,14 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
         if inversion:
             loss_data = torch.mean((u - U_noisy_torch)**2)
             if with_source:
-                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - 1)**2) # source term -1
+                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - 1)**2) # subtract source term -1
             else:   # Data loss comparing with noisy data
-                
                 loss_pde = torch.mean((u_t - pinn.alpha * u_xx)**2)
         else:
-            loss_pde = torch.mean((u_t - alpha_true * u_xx)**2)
+            if with_source:
+                loss_pde = torch.max((u_t - alpha_true * u_xx - 1)**2) # subtract source term -1
+            else:
+                loss_pde = torch.max((u_t - alpha_true * u_xx)**2)
 
         # Total loss
         loss = (lambda_bc * loss_bc +
@@ -137,21 +147,24 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
                 plt.plot(x_test, u_pred, label="PINN Solution", color="blue")
                 plt.grid()
                 plt.legend()
-                plt.tight_layout()
 
                 if with_source:
                     if inversion:
                         plt.title(f"Epoch {epoch}, inversion: 1D heat eq + source")
+                        plt.tight_layout()
                         plt.savefig(f"plots/source/inversion/heat_eq_inv_source_epoch{epoch}.png")
                     else:
                         plt.title(f"Epoch {epoch}, training: 1D heat eq + source")
+                        plt.tight_layout()
                         plt.savefig(f"plots/source/training/heat_eq_source_epoch{epoch}.png")
                 else:
                     if inversion:
                         plt.title(f"Epoch {epoch}, inversion: 1D heat eq")
+                        plt.tight_layout()
                         plt.savefig(f"plots/nosource/inversion/heat_eq_inv_epoch{epoch}.png")
                     else:
                         plt.title(f"Epoch {epoch}, training: 1D heat eq")
+                        plt.tight_layout()
                         plt.savefig(f"plots/nosource/training/heat_eq_train_epoch{epoch}.png")
 
                 plt.close()
@@ -165,13 +178,14 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
         plt.ylabel('Alpha')
         plt.grid()
         plt.legend()
-        plt.tight_layout()
 
         if with_source:
             plt.title('α estimation: 1D heat eq + source')
+            plt.tight_layout()
             plt.savefig("plots/source/alpha_estimate.png")
         else:
             plt.title('α Estimation: 1D heat eq')
+            plt.tight_layout()
             plt.savefig("plots/nosource/alpha_estimate.png")
             
         plt.close()

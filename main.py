@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 from models import FCN
-from training import train_pinn
+from train_and_inversion import train_inversion
 from analytical_solution import heat_eq_1D, heat_eq_1D_with_source
 
 
@@ -15,6 +15,9 @@ def load_params():
         return yaml.safe_load(file)
     
 def get_exact_solution():
+    """
+    Gets equation type and sets with_source value
+    """
     params = load_params()
     solution_type = params['equation']['type']
     if solution_type == "heat_eq_1D":
@@ -22,10 +25,13 @@ def get_exact_solution():
     elif solution_type == "heat_eq_1D_with_source":
         return heat_eq_1D_with_source, True
     else:
-        raise ValueError("Invalid solution type specified in params.yaml")
+        raise ValueError("Invalid solution type.")
 
 def main():
-
+    """
+    Trains pinn and does the parameter inversion
+    """
+    # Load parameters and equation type
     params = load_params()
     exact_solution_func, with_source = get_exact_solution()
 
@@ -37,11 +43,11 @@ def main():
     # Initialize PINN model
     pinn = FCN(**params['model_params'], inversion=False)
     
-    # Train PINN with the selected exact solution
+    # Train PINN
     print("==============================")
     print("\tTraining PINN")
     print("==============================")
-    train_pinn(pinn, params,
+    train_inversion(pinn, params,
                exact_solution=exact_solution_func,
                inversion=False,
                with_source=with_source)
@@ -51,7 +57,7 @@ def main():
     print("==============================")
     print("\tPINN inversion")
     print("==============================")
-    train_pinn(pinn_inversion, params,
+    train_inversion(pinn_inversion, params,
                exact_solution=exact_solution_func,
                inversion=True,
                with_source=with_source)
