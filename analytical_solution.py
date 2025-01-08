@@ -8,7 +8,7 @@ def heat_eq_1D(x, t, alpha):
     With boundary conditions
     - u(x, 0) = sin(pi x)
     - u(0, t) = u(1, t) = 0
-    
+
     Args:
     - t: time
     - x: position
