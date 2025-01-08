@@ -33,7 +33,7 @@ class FCN(nn.Module):
         self.fce = nn.Linear(N_HIDDEN, N_OUTPUT)
 
         if self.inversion:
-            # Learnable parameter for alpha (diffusion coefficient)
+            # Learnable parameter for alpha (diffusion coefficient), initialed
             self.alpha = nn.Parameter(torch.tensor(0.05, dtype=torch.float32))
 
     def forward(self, x):

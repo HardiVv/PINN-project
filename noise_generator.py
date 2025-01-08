@@ -28,7 +28,7 @@ def generate_noisy_data(
         U (torch.Tensor or np.ndarray): Exact solution
         U_noisy (torch.Tensor or np.ndarray): The noisy solution
     """
-    # Create grid of points
+    # Create grid of points separately
     x = torch.linspace(x_range[0], x_range[1], grid_size)
     t = torch.linspace(t_range[0], t_range[1], grid_size)
     X, T = torch.meshgrid(x, t, indexing="ij")

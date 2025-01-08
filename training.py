@@ -20,10 +20,10 @@ def generate_filename(epoch, inversion, function_name):
 
     Returns: str (filename for saving the plot)
     """
-    # Inversion status for naming
+    # Inversion status in naming
     inversion_status = "inversion" if inversion else "training"
 
-    # Generate a descriptive filename
+    # gives me a filename
     return f"plots/{function_name}_{inversion_status}_epoch{epoch}.png"
 
 
@@ -44,21 +44,21 @@ def train_pinn(pinn, params, solution_func, inversion=False):
     # Load the number of training epochs
     training_epochs = params["training_params"]["training_epochs"]
 
-    # Ensure the directory exists
+    # Ensures the directory exists
     os.makedirs("plots/training", exist_ok=True)
 
     if inversion:
-        # Ensure the directory for saving plots exists
+        # Ensures the directory for saving plots exists
         inversion_plot_dir = "plots/inversion"
         os.makedirs(inversion_plot_dir, exist_ok=True)
 
         # Visualization and data generation with the selected solution function
-        x, t, U_exact, U_noisy = generate_noisy_data(solution_func)
+        x, t, U_exact, U_noisy = generate_noisy_data(solution_func)  # chosen one
 
         # Convert noisy data to torch tensors
         U_noisy_torch = U_noisy.clone().detach().reshape(-1, 1).type(torch.float32)
 
-        # Plotting exact and noisy solutions
+        # Plotting the downfall of tensors
         fig2 = plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
         plt.contourf(x, t, U_exact, levels=20, cmap="viridis")
@@ -79,11 +79,11 @@ def train_pinn(pinn, params, solution_func, inversion=False):
         plt.savefig(filename)
         plt.close()
 
-        # Training variables
+        # Training vars
         alpha_estimates = []
         losses = []
 
-    # Define the domain
+    # Defines the domain (ck3 reference)
     x_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Spatial domain
     t_physics = torch.linspace(0, 1, 50).view(-1, 1).requires_grad_(True)  # Time domain
     X, T = torch.meshgrid(x_physics[:, 0], t_physics[:, 0], indexing="ij")
@@ -106,10 +106,10 @@ def train_pinn(pinn, params, solution_func, inversion=False):
     lambda_bc = 100.0  # Increased weight for boundary loss
     lambda_pde = 1.0  # Weight for PDE loss
     lambda_ic = 100.0  # Weight for initial condition loss
-    lambda_data = 10.0
+    lambda_data = 100.0
     optimizer = torch.optim.Adam(pinn.parameters(), lr=1e-3)
 
-    # Training loop
+    # Training loop, will ash finally become a pokemon master?
     for epoch in range(training_epochs):
         optimizer.zero_grad()
 
@@ -130,13 +130,13 @@ def train_pinn(pinn, params, solution_func, inversion=False):
         u_t = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 1:2]
 
         if inversion:
-            # Data loss comparing with noisy data
+            # Data loss comparison with noisy data
             loss_data = torch.mean((u - U_noisy_torch) ** 2)
-            loss_pde = torch.mean((u_t - (getattr(pinn, "alpha", 0.1) * u_xx + 1)) ** 2)  # Source term is 1
+            loss_pde = torch.mean((u_t - (getattr(pinn, "alpha", 0.1) * u_xx - 1)) ** 2)  # Source term is 1
         else:
-            loss_pde = torch.mean((u_t - alpha_true * u_xx - 1) ** 2)  # Source term is 1
+            loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)  # Source term is 0
 
-        # Total loss
+        # Total loss island
         loss = (
             lambda_bc * loss_bc
             + lambda_pde * loss_pde
@@ -148,7 +148,7 @@ def train_pinn(pinn, params, solution_func, inversion=False):
         optimizer.step()
 
         # Print progress and plot results
-        if epoch % 1000 == 0:
+        if epoch % 500 == 0:
             if inversion:
                 alpha_estimates.append(pinn.alpha.item())
                 losses.append(loss.item())
@@ -179,7 +179,7 @@ def train_pinn(pinn, params, solution_func, inversion=False):
                 plt.close()
 
     if inversion:
-        # Plot alpha estimates
+        # Plot alpha estimations
         plt.figure(figsize=(4, 3))
         plt.plot(np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label="Estimated Alpha")
         plt.axhline(y=alpha_true, color="r", linestyle="--", label="True Alpha")

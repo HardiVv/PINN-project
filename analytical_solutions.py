@@ -32,6 +32,7 @@ def exact_solution_source(x, t, alpha):
     - t: time
     - x: position
     - alpha: thermal diffusivity
+    - we assume only n=1 for the analytical solution
 
     Returns:
     - Solution tensor
