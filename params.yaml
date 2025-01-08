@@ -17,5 +17,5 @@ hyperparameters:
     lambda_data: 10.0  # Weight for data loss during inversion
 
 equation:
-    type: "heat_eq_1D"
-    # type: "heat_eq_1D_with_source"
+    # type: "heat_eq_1D"
+    type: "heat_eq_1D_with_source"

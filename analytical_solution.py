@@ -17,8 +17,9 @@ def heat_eq_1D(x, t, alpha):
     Returns:
     - Solution tensor
     """
-    
+
     return torch.exp(-np.pi**2 * alpha * t) * torch.sin(np.pi * x)
+
 
 def heat_eq_1D_with_source(x, t, alpha):
     """

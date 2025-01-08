@@ -11,13 +11,13 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
     Args:
     - pinn: The initialized FCN model.
     - params: A dictionary of parameters loaded from params.yaml
-    - exact_solution: Analytical solution of 
+    - exact_solution: Analytical solution of
       1D heat equation or 1D heat equation with source term
     - inversion (boolean): Determines if to perform inversion
     - with_source (boolean): Checks if soulution has source
 
     Returns:
-    - Plots 
+    - Plots
     """
 
     if inversion:
@@ -29,12 +29,12 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
         # Plotting exact and noisy solutions
         fig2 = plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
-        plt.contourf(x, t, U_exact, levels=20, cmap='viridis')
-        plt.colorbar(label='Exact Solution')
-        plt.title('Exact Solution')
-        plt.xlabel('x')
-        plt.ylabel('t')
-        
+        plt.contourf(x, t, U_exact, levels=20, cmap="viridis")
+        plt.colorbar(label="Exact Solution")
+        plt.title("Exact Solution")
+        plt.xlabel("x")
+        plt.ylabel("t")
+
         plt.subplot(1, 2, 2)
         plt.contourf(x, t, U_noisy, levels=20, cmap="viridis")
         plt.colorbar(label="Noisy Solution")
@@ -75,12 +75,12 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
     initial_points = torch.cat([x_initial, t_initial], dim=1)
 
     # Retrieve hyperparameters from the params dictionary
-    alpha_true = params['hyperparameters']['alpha_true']
-    lambda_bc = params['hyperparameters']['lambda_bc']
-    lambda_pde = params['hyperparameters']['lambda_pde']
-    lambda_ic = params['hyperparameters']['lambda_ic']
-    lambda_data = params['hyperparameters']['lambda_data']
-    optimizer = torch.optim.AdamW(pinn.parameters(), lr=1e-3) # Adam or AdamW
+    alpha_true = params["hyperparameters"]["alpha_true"]
+    lambda_bc = params["hyperparameters"]["lambda_bc"]
+    lambda_pde = params["hyperparameters"]["lambda_pde"]
+    lambda_ic = params["hyperparameters"]["lambda_ic"]
+    lambda_data = params["hyperparameters"]["lambda_data"]
+    optimizer = torch.optim.AdamW(pinn.parameters(), lr=1e-3)  # Adam or AdamW
 
     # Training
     for epoch in range(5001):
@@ -104,16 +104,16 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
 
         # Apply source term if the equation has a source term
         if inversion:
-            loss_data = torch.mean((u - U_noisy_torch)**2)
+            loss_data = torch.mean((u - U_noisy_torch) ** 2)
             if with_source:
-                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - 1)**2) # subtract source term -1
-            else:   # Data loss comparing with noisy data
-                loss_pde = torch.mean((u_t - pinn.alpha * u_xx)**2)
+                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - 1) ** 2)  # subtract source term -1
+            else:  # Data loss comparing with noisy data
+                loss_pde = torch.mean((u_t - pinn.alpha * u_xx) ** 2)
         else:
             if with_source:
-                loss_pde = torch.max((u_t - alpha_true * u_xx - 1)**2) # subtract source term -1
+                loss_pde = torch.max((u_t - alpha_true * u_xx - 1) ** 2)  # subtract source term -1
             else:
-                loss_pde = torch.max((u_t - alpha_true * u_xx)**2)
+                loss_pde = torch.max((u_t - alpha_true * u_xx) ** 2)
 
         # Total loss
         loss = (
@@ -174,21 +174,21 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
 
     if inversion:
         # Plot alpha estimates
-        plt.figure(figsize=(4,3))
-        plt.plot(np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label='Estimated Alpha')
-        plt.axhline(y=alpha_true, color='r', linestyle='--', label='True Alpha')
-        plt.xlabel('Epoch')
-        plt.ylabel('Alpha')
+        plt.figure(figsize=(4, 3))
+        plt.plot(np.linspace(0, 5000, len(alpha_estimates)), alpha_estimates, label="Estimated Alpha")
+        plt.axhline(y=alpha_true, color="r", linestyle="--", label="True Alpha")
+        plt.xlabel("Epoch")
+        plt.ylabel("Alpha")
         plt.grid()
         plt.legend()
 
         if with_source:
-            plt.title('α estimation: 1D heat eq + source')
+            plt.title("α estimation: 1D heat eq + source")
             plt.tight_layout()
             plt.savefig("plots/source/alpha_estimate.png")
         else:
-            plt.title('α Estimation: 1D heat eq')
+            plt.title("α Estimation: 1D heat eq")
             plt.tight_layout()
             plt.savefig("plots/nosource/alpha_estimate.png")
-            
+
         plt.close()
