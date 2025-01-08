@@ -6,12 +6,11 @@ from models import FCN
 from train_and_inversion import train_inversion
 from analytical_solution import heat_eq_1D, heat_eq_1D_with_source
 
-
 def load_params():
     """
     Loads model and training params from params.yaml
     """
-    with open('params.yaml', 'r') as file:
+    with open("params.yaml", "r") as file:
         return yaml.safe_load(file)
     
 def get_exact_solution():
@@ -36,7 +35,7 @@ def main():
     exact_solution_func, with_source = get_exact_solution()
 
     # Set random seed for reproducibility
-    seeds = params['training_params']['random_seeds']
+    seeds = params["training_params"]["random_seeds"]
     torch.manual_seed(seeds)
     np.random.seed(seeds)
 
@@ -61,6 +60,7 @@ def main():
                exact_solution=exact_solution_func,
                inversion=True,
                with_source=with_source)
+
 
 if __name__ == "__main__":
     main()

@@ -12,6 +12,7 @@ class FCN(nn.Module):
     - N_HIDDEN: Number of neurons in hidden layers
     - N_LAYERS: Number of hidden layers
     """
+
     def __init__(self, N_INPUT, N_OUTPUT, N_HIDDEN, N_LAYERS, inversion=False):
         super().__init__()
         activation = nn.Tanh
