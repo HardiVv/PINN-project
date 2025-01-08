@@ -9,24 +9,23 @@ import matplotlib.pyplot as plt
 from analytical_solutions import exact_solution, exact_solution_source
 from noise_generator import generate_noisy_data
 
-def generate_filename(epoch, inversion, solution_func_name, with_source):
+def generate_filename(epoch, inversion, function_name):
     """
-    Helper function to save the PINN model training steps depending on sources, and type of equation.
+    Helper function to save the PINN model training steps with a more readable filename.
 
     Args:
     - epoch: The number of epochs
-    - inversion: A flag to switch between data inversion (with noisy data) or standard training.
-    - solution_func_name: A flag stating which PDE is being trained.
-    - with_source: A flag to indicate if the source term has been included or not.
+    - inversion: A flag to indicate if inversion is used
+    - function_name: The name of the PDE function being solved
 
-    Returns: png 
+    Returns: str (filename for saving the plot)
     """
-    # Generate a unique filename based on the equation and source term
-    equation_name = "source" if "source" in solution_func_name else "no_source"
-    source_status = "with_source" if with_source else "without_source"
+    # Inversion status for naming
     inversion_status = "inversion" if inversion else "training"
 
-    return f"plots/{inversion_status}/{equation_name}_{source_status}_epoch{epoch}.png"
+    # Generate a descriptive filename
+    return f"plots/{function_name}_{inversion_status}_epoch{epoch}.png"
+
 
 def train_pinn(pinn, params, solution_func, inversion=False):
     """
@@ -76,7 +75,7 @@ def train_pinn(pinn, params, solution_func, inversion=False):
         plt.ylabel("t")
         plt.tight_layout()
 
-        filename = generate_filename(0, inversion, solution_func.__name__, True)
+        filename = generate_filename(0, inversion, solution_func.__name__)
         plt.savefig(filename)
         plt.close()
 
@@ -175,7 +174,7 @@ def train_pinn(pinn, params, solution_func, inversion=False):
                 plt.legend()
                 plt.title(f"Epoch {epoch}")
                 plt.tight_layout()
-                filename = generate_filename(epoch, inversion, solution_func.__name__, True)
+                filename = generate_filename(epoch, inversion, solution_func.__name__)
                 plt.savefig(filename)
                 plt.close()
 
@@ -189,6 +188,6 @@ def train_pinn(pinn, params, solution_func, inversion=False):
         plt.ylabel("Alpha")
         plt.legend()
         plt.tight_layout()
-        filename = generate_filename(0, inversion, solution_func.__name__, True)
+        filename = generate_filename(0, inversion, solution_func.__name__)
         plt.savefig(filename)
         plt.close()
