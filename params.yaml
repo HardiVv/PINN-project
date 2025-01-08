@@ -1,7 +1,7 @@
 model_params:
     N_INPUT: 2
     N_OUTPUT: 1
-    N_HIDDEN: 64
+    N_HIDDEN: 32
     N_LAYERS: 4
 
 training_params:

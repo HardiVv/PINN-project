@@ -24,7 +24,7 @@ def exact_solution_source(x, t, alpha):
     """
     Analytical solution to the 1D heat equation with a source term.
     With boundary conditions:
-    - u(x, 0) = sin(pi x) / (alpha * pi^2 + 1)
+    - u(x, 0) = sin(pi x)
     - u(0, t) = u(1, t) = 0
     And a source term f(x, t) = 1.
 
@@ -43,8 +43,8 @@ def exact_solution_source(x, t, alpha):
     if isinstance(t, np.ndarray):
         t = torch.tensor(t, dtype=torch.float32)
 
-    # The analytical solution with the source term included
-    term_1 = (torch.sin(np.pi * x) / (alpha * np.pi**2 + 1)) * (1 - torch.exp(-(alpha * np.pi**2 + 1) * t))
-    term_2 = 1 / (alpha * np.pi**2 + 1)
+    # The analytical solution with updated boundary conditions and source term
+    term_1 = torch.exp(-np.pi**2 * alpha * t) * torch.sin(np.pi * x)
+    term_2 = (1 - torch.exp(-t)) * (x - x**2)  # Ensures boundaries to be 0, and transient growth to steady state!
 
     return term_1 + term_2
