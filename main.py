@@ -34,13 +34,13 @@ def main():
     torch.manual_seed(seeds)
     np.random.seed(seeds)
 
-# Initialize PINN model
+    # Initialize PINN model
     pinn = FCN(**params['model_params'], inversion=False)
     
     # Train PINN with the selected exact solution
-    print("=============")
-    print("Training PINN")
-    print("=============")
+    print("==============================")
+    print("\tTraining PINN")
+    print("==============================")
     train_pinn(pinn, params,
                exact_solution=exact_solution_func,
                inversion=False,
@@ -48,9 +48,9 @@ def main():
 
     # Parameter inversion
     pinn_inversion = FCN(**params['model_params'], inversion=True)
-    print("=============")
-    print("PINN inversion")
-    print("=============")
+    print("==============================")
+    print("\tPINN inversion")
+    print("==============================")
     train_pinn(pinn_inversion, params,
                exact_solution=exact_solution_func,
                inversion=True,

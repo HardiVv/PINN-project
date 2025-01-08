@@ -4,11 +4,6 @@ import matplotlib.pyplot as plt
 from noise_generator import generate_noisy_data
 
 
-def source_term(X, alpha):
-    x = X[:, 0:1]
-    t = X[:, 1:2]
-    return torch.sin(np.pi * x) * torch.exp(-(alpha * np.pi**2 + 1) * t)
-
 def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False):
     """
     Trains the PINN model
@@ -38,6 +33,7 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
         plt.title('Noisy Solution')
         plt.xlabel('x')
         plt.ylabel('t')
+        plt.tight_layout()
 
         if with_source:
             plt.suptitle("1D heat eq + source")
@@ -46,7 +42,6 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
             plt.suptitle("1D heat eq")
             plt.savefig("plots/nosource/noisydata.png")
 
-        plt.tight_layout()
         plt.close()
 
         # Training variables
@@ -101,10 +96,8 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
         # Apply source term if the equation has a source term
         if inversion:
             loss_data = torch.mean((u - U_noisy_torch)**2)
-
             if with_source:
-                f_source = source_term(X_physics, pinn.alpha)  # Use the estimated alpha
-                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - f_source)**2)
+                loss_pde = torch.mean((u_t - pinn.alpha * u_xx - 1)**2) # source term -1
             else:   # Data loss comparing with noisy data
                 
                 loss_pde = torch.mean((u_t - pinn.alpha * u_xx)**2)
@@ -144,6 +137,7 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
                 plt.plot(x_test, u_pred, label="PINN Solution", color="blue")
                 plt.grid()
                 plt.legend()
+                plt.tight_layout()
 
                 if with_source:
                     if inversion:
@@ -160,7 +154,6 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
                         plt.title(f"Epoch {epoch}, training: 1D heat eq")
                         plt.savefig(f"plots/nosource/training/heat_eq_train_epoch{epoch}.png")
 
-                plt.tight_layout()
                 plt.close()
 
     if inversion:
@@ -172,6 +165,7 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
         plt.ylabel('Alpha')
         plt.grid()
         plt.legend()
+        plt.tight_layout()
 
         if with_source:
             plt.title('α estimation: 1D heat eq + source')
@@ -180,5 +174,4 @@ def train_pinn(pinn, params, exact_solution, inversion=False, with_source=False)
             plt.title('α Estimation: 1D heat eq')
             plt.savefig("plots/nosource/alpha_estimate.png")
             
-        plt.tight_layout()
         plt.close()

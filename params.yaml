@@ -2,7 +2,7 @@ model_params:
     N_INPUT: 2
     N_OUTPUT: 1
     N_HIDDEN: 32
-    N_LAYERS: 3
+    N_LAYERS: 4
 
 training_params:
     random_seeds: 10
@@ -17,5 +17,5 @@ hyperparameters:
     lambda_data: 10.0  # Weight for data loss (during inversion)
 
 equation:
-    type: "heat_eq_1D"
-    # type: "heat_eq_1D_with_source"
+    # type: "heat_eq_1D"
+    type: "heat_eq_1D_with_source"
