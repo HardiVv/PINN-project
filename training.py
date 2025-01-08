@@ -28,7 +28,7 @@ def generate_filename(epoch, inversion, solution_func_name, with_source):
 
     return f"plots/{inversion_status}/{equation_name}_{source_status}_epoch{epoch}.png"
 
-def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
+def train_pinn(pinn, params, solution_func, inversion=False):
     """
     Trains the PINN model.
 
@@ -37,7 +37,6 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
     - params: A dictionary of parameters loaded from params.yaml.
     - solution_func: The function to compute the exact solution (either exact_solution or exact_solution_source).
     - inversion: A flag to switch between data inversion (with noisy data) or standard training.
-    - with_source: A flag to include the source term in the PDE or not.
 
     Returns:
     - None
@@ -54,7 +53,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         inversion_plot_dir = "plots/inversion"
         os.makedirs(inversion_plot_dir, exist_ok=True)
 
-        # Visualization and data generation with the selected solution function (either with or without source term)
+        # Visualization and data generation with the selected solution function
         x, t, U_exact, U_noisy = generate_noisy_data(solution_func)
 
         # Convert noisy data to torch tensors
@@ -77,7 +76,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         plt.ylabel("t")
         plt.tight_layout()
 
-        filename = generate_filename(0, inversion, solution_func.__name__, with_source)
+        filename = generate_filename(0, inversion, solution_func.__name__, True)
         plt.savefig(filename)
         plt.close()
 
@@ -124,7 +123,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         u_initial_true = torch.sin(np.pi * x_initial)
         loss_ic = torch.mean((u_initial - u_initial_true) ** 2)
 
-        # Physics loss (PDE) - Now conditionally including the source term
+        # Physics loss (PDE)
         u = pinn(X_physics)  # Predict u(x, t)
 
         u_x = torch.autograd.grad(u, X_physics, torch.ones_like(u), create_graph=True)[0][:, 0:1]
@@ -134,15 +133,9 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         if inversion:
             # Data loss comparing with noisy data
             loss_data = torch.mean((u - U_noisy_torch) ** 2)
-            if with_source:  # source term is included
-                loss_pde = torch.mean((u_t - (getattr(pinn, "alpha", 0.1) * u_xx + 1)) ** 2)  # Source term is 1
-            else:
-                loss_pde = torch.mean((u_t - getattr(pinn, "alpha", 0.1) * u_xx) ** 2)  # No source term
+            loss_pde = torch.mean((u_t - (getattr(pinn, "alpha", 0.1) * u_xx + 1)) ** 2)  # Source term is 1
         else:
-            if with_source:  # source term is included
-                loss_pde = torch.mean((u_t - alpha_true * u_xx - 1) ** 2)  # Source term is 1
-            else:
-                loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)  # No source term
+            loss_pde = torch.mean((u_t - alpha_true * u_xx - 1) ** 2)  # Source term is 1
 
         # Total loss
         loss = (
@@ -173,7 +166,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
                 X_test = torch.cat([x_test, t_test], dim=1)
                 u_pred = pinn(X_test).detach()
 
-                # Use the chosen solution function (either exact_solution or exact_solution_source)
+                # Use the chosen solution function
                 u_exact = solution_func(x_test, t_test, alpha_true)
 
                 plt.figure(figsize=(4.5, 2.5))
@@ -182,7 +175,7 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
                 plt.legend()
                 plt.title(f"Epoch {epoch}")
                 plt.tight_layout()
-                filename = generate_filename(epoch, inversion, solution_func.__name__, with_source)
+                filename = generate_filename(epoch, inversion, solution_func.__name__, True)
                 plt.savefig(filename)
                 plt.close()
 
@@ -196,6 +189,6 @@ def train_pinn(pinn, params, solution_func, inversion=False, with_source=False):
         plt.ylabel("Alpha")
         plt.legend()
         plt.tight_layout()
-        filename = generate_filename(0, inversion, solution_func.__name__, with_source)
+        filename = generate_filename(0, inversion, solution_func.__name__, True)
         plt.savefig(filename)
         plt.close()

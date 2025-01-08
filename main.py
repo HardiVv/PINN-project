@@ -23,22 +23,35 @@ def main():
     torch.manual_seed(seeds)
     np.random.seed(seeds)
 
-    # Add 'inversion' key to config, which is used later
-    params["model_params"]["inversion"] = False  # Initially no inversion
+    # Phase 1: Train and invert on no-source PDE
+    print("Phase 1: Training and inversion with no source term...")
 
-    # Initialize PINN model with the config dictionary
-    pinn = FCN(config=params["model_params"])
+    # Task 1: Train PINN on no-source PDE
+    print("Training PINN (no inversion, no source term)...")
+    params["model_params"]["inversion"] = False  # No inversion
+    pinn_no_source = FCN(config=params["model_params"])  # Fresh PINN
+    train_pinn(pinn_no_source, params, solution_func=exact_solution, inversion=False)
 
-    # First training phase: using exact_solution (no source term)
-    print("Training PINN with exact solution (no source term)...")
-    train_pinn(pinn, params, solution_func=exact_solution, inversion=False, with_source=False)
+    # Task 2: Perform parameter inversion on the trained PINN (no source term)
+    print("Performing parameter inversion (no source term)...")
+    params["model_params"]["inversion"] = True  # Enable inversion
+    pinn_no_source_inversion = FCN(config=params["model_params"])  # Fresh PINN for inversion
+    train_pinn(pinn_no_source_inversion, params, solution_func=exact_solution, inversion=True)
 
-    # Perform parameter inversion (now using the source term in the PDE)
-    params["model_params"]["inversion"] = True  # Enables inversion next phase
-    pinn_inversion = FCN(config=params["model_params"])
+    # Phase 2: Train and invert on source PDE
+    print("Phase 2: Training and inversion with source term...")
 
-    print("Performing parameter inversion with exact solution source term...")
-    train_pinn(pinn_inversion, params, solution_func=exact_solution_source, inversion=True, with_source=True)
+    # Task 1: Train PINN on source PDE
+    print("Training PINN (no inversion, with source term)...")
+    params["model_params"]["inversion"] = False  # No inversion
+    pinn_with_source = FCN(config=params["model_params"])  # Fresh PINN
+    train_pinn(pinn_with_source, params, solution_func=exact_solution_source, inversion=False)
+
+    # Task 2: Perform parameter inversion on the trained PINN (with source term)
+    print("Performing parameter inversion (with source term)...")
+    params["model_params"]["inversion"] = True  # Enable inversion
+    pinn_with_source_inversion = FCN(config=params["model_params"])  # Fresh PINN for inversion
+    train_pinn(pinn_with_source_inversion, params, solution_func=exact_solution_source, inversion=True)
 
 
 if __name__ == "__main__":
