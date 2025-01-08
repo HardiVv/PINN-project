@@ -16,18 +16,16 @@ class FCN(nn.Module):
         super().__init__()
         activation = nn.Tanh
         self.fcs = nn.Sequential(
-            nn.Linear(N_INPUT, N_HIDDEN),
-            activation())
+            nn.Linear(N_INPUT, N_HIDDEN), activation())
         self.fch = nn.Sequential(*[
             nn.Sequential(
-                nn.Linear(N_HIDDEN, N_HIDDEN),
-                activation())
+                nn.Linear(N_HIDDEN, N_HIDDEN), activation())
             for _ in range(N_LAYERS - 1)]
         )
         self.fce = nn.Linear(N_HIDDEN, N_OUTPUT)
 
         if inversion:
-            # Learnable parameter for alpha
+            # Learnable parameter alpha
             self.alpha = nn.Parameter(torch.tensor(0.05, dtype=torch.float32))
 
     def forward(self, x):

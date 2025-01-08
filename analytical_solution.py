@@ -17,6 +17,7 @@ def heat_eq_1D(x, t, alpha):
     Returns:
     - Solution tensor
     """
+    
     return torch.exp(-np.pi**2 * alpha * t) * torch.sin(np.pi * x)
 
 def heat_eq_1D_with_source(x, t, alpha):
@@ -25,6 +26,7 @@ def heat_eq_1D_with_source(x, t, alpha):
     With boundary conditions:
     - u(x, 0) = sin(pi x) / (alpha * pi^2 + 1)
     - u(0, t) = u(1, t) = 0
+    And a source term f(x, t) = 1
 
     Args:
     - t: time
@@ -35,6 +37,8 @@ def heat_eq_1D_with_source(x, t, alpha):
     - Solution tensor
     """
 
-    # Computed manually
-    return (torch.sin(np.pi * x) / (alpha * np.pi**2 + 1)) * \
-        (1 - torch.exp(-(alpha * np.pi**2 + 1) * t))
+    # The analytical solution with source term
+    term_1 = torch.exp(-np.pi**2 * alpha * t) * torch.sin(np.pi * x)
+    term_2 = (1 - torch.exp(-t)) * (x - x**2)  # Ensures boundaries to be 0
+
+    return term_1 + term_2
