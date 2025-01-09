@@ -83,7 +83,7 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
     optimizer = torch.optim.AdamW(pinn.parameters(), lr=1e-3) # Adam or AdamW
 
     # Training
-    for epoch in range(5001):
+    for epoch in range(params['training_params']['epochs']):
         optimizer.zero_grad()
 
         # Boundary loss (enforcing zero at boundaries)

@@ -7,15 +7,15 @@ model_params:
 training_params:
     random_seeds: 10
     learning_rate: 0.0005
-    training_epochs: 5001
+    epochs: 5001
 
 hyperparameters:
-    alpha_true: 0.1  # True value of thermal diffusivity
-    lambda_bc: 100.0  # Weight for boundary condition loss
-    lambda_pde: 70.0  # Weight for PDE loss
-    lambda_ic: 100.0  # Weight for initial condition loss
+    alpha_true: 0.2  # True value of thermal diffusivity
+    lambda_bc: 200.0  # Weight for boundary condition loss
+    lambda_pde: 100.0  # Weight for PDE loss
+    lambda_ic: 200.0  # Weight for initial condition loss
     lambda_data: 10.0  # Weight for data loss during inversion
 
 equation:
-    type: "heat_eq_1D"
-    # type: "heat_eq_1D_with_source"
+    #type: "heat_eq_1D"
+    type: "heat_eq_1D_with_source"

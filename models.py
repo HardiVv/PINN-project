@@ -27,7 +27,7 @@ class FCN(nn.Module):
 
         if inversion:
             # Learnable parameter alpha
-            self.alpha = nn.Parameter(torch.tensor(0.05, dtype=torch.float32))
+            self.alpha = nn.Parameter(torch.tensor(0.15, dtype=torch.float32))
 
     def forward(self, x):
         x = self.fcs(x)
