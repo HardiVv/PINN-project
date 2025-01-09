@@ -111,9 +111,9 @@ def train_inversion(pinn, params, exact_solution, inversion=False, with_source=F
                 loss_pde = torch.mean((u_t - pinn.alpha * u_xx) ** 2)
         else:
             if with_source:
-                loss_pde = torch.max((u_t - alpha_true * u_xx - 1) ** 2)  # subtract source term -1
+                loss_pde = torch.mean((u_t - alpha_true * u_xx - 1) ** 2)  # subtract source term -1
             else:
-                loss_pde = torch.max((u_t - alpha_true * u_xx) ** 2)
+                loss_pde = torch.mean((u_t - alpha_true * u_xx) ** 2)
 
         # Total loss
         loss = (
